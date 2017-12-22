@@ -61,24 +61,24 @@ class Blockchain():
             trans = self.current_transactions
             if len(trans) == 0:
                 print("error: no transaction to be added to a block")
-                raise ValueError
+                return
 
         proof = self.proof_of_work()
 
         block = {
-                'index': len(self.chain) + 1,
+                'block_index': len(self.chain) + 1,
                 'timestamp': time(),
                 'transactions': self.current_transactions,
                 'proof': proof,
                 'previous_hash': prev_proof,
         }
 
-        print(block)
         # Reset the current_transactions list
         self.current_transactions = []
 
         self.chain.append(block)
-        print("A block has just been mined!")
+        if len(self.chain) > 1:
+            print(f"block #{len(self.chain)} has just been mined!")
         return block
 
     def new_transaction(self, user_list):
@@ -91,7 +91,7 @@ class Blockchain():
 
         self.current_transactions.append(new_trans.trans)
         print("transaction added, not mined yet")
-        return self.last_block['index'] + 1
+        return self.last_block['block_index'] + 1
 
     @staticmethod
     def hash(block):
@@ -122,7 +122,7 @@ class Blockchain():
         while self.valid_proof(last_proof, proof, cur_hash) is False:
             proof += 1
 
-        print(f"proof is :{proof}")
+        #print(f"proof is :{proof}")
         return proof
 
     def valid_proof(self, last_proof, proof, cur_hash):
@@ -132,15 +132,67 @@ class Blockchain():
         guess = f'{last_proof}{cur_hash}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
 
+        '''
         if guess_hash[:4] == "0000":
             print(guess_hash)
+        '''
         return guess_hash[:4] == "0000"
 
-if __name__ == "__main__":
-    user_list = []
-    user = User()
-    user_list.append(user)
+def setup_user(user_list):
+    new_user = User()
+    user_list.append(new_user)
 
-    a = Blockchain()
-    a.new_transaction(user_list)
-    a.new_block()
+def new_trans(user_list, chain):
+    chain.new_transaction(user_list)
+
+def mine_block(chain):
+    chain.new_block()
+
+def show_block(chain):
+    print(chain.last_block)
+
+def show_chain(chain):
+    for block in chain.chain:
+        print(f"{block}")
+
+
+if __name__ == "__main__":
+    prompt = '''
+    *************** Welcome to our blockchain system *******************
+    Pleas select the following operations
+    1. Setup user name and initial depost
+    2. New transactions
+    3. Mine the block
+    4. Show the latest block
+    5. Show the current chain
+    6. Quit
+    ********************************************************************
+    '''
+    print(prompt)
+    user_list = []
+    blockchain = Blockchain()
+    while True:
+        choice = int(input("Your operation:"))
+        if choice == 1:
+            setup_user(user_list)
+        elif choice == 2:
+            new_trans(user_list, blockchain)
+        elif choice == 3:
+            mine_block(blockchain)
+        elif choice == 4:
+            show_block(blockchain)
+        elif choice == 5:
+            show_chain(blockchain)
+        elif choice == 6:
+            break
+        else:
+            print("Please enter a valid choice")
+            continue
+
+
+        '''
+        user = User()
+        user_list.append(user)
+        a.new_transaction(user_list)
+        a.new_block()
+        '''
